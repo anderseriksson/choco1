@@ -1,0 +1,6 @@
+{
+  :paths ["src"]
+  :deps {
+    org.choco-solver/choco-solver {:mvn/version "4.10.18"}
+  }
+}
