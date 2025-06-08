@@ -1,55 +1,26 @@
 (ns clojure-choco-solver.core
-  (:import [org.chocosolver.solver Model]
-           [org.chocosolver.solver.constraints Constraint] 
-           [org.chocosolver.solver.variables IntVar]))
+  (:require
+   [clojure-choco-solver.util :refer [assign-ids column-from-java-array rpad]]
+   [clojure.string :as str])
+  (:require [clojure-choco-solver.input :refer [ledare patruller kalenderpass aktivitet ledar-aktivitet]])
+  (:import
+   [org.chocosolver.solver Model]
+   [org.chocosolver.solver.constraints Constraint]
+   [org.chocosolver.solver.variables IntVar]))
 
-
-
-(defn assign-ids
-  "Takes a sequential collection and returns a map of {id value} with ids from 0 to n.
-   Throws an exception if input items are not unique."
-  [coll] 
-
-  (let [v (vec coll)]
-    (when (not= (count v) (count (set v)))
-      (throw (ex-info "All items in the collection must be unique." {:input coll})))
-    (into {} (map-indexed (fn [idx val] [idx val]) v))))
-
-(defn column-from-java-array
-  "Given a 2D Java array arr and index n, returns a vector of the nth element from each row."
-  [arr n]
-  (mapv #(aget ^objects arr % n) (range (alength arr))))
-
-
-
-(def ledare #{"Anders" "Tobias" "Jonas N" "Anna" "Jonas S"})
-
-(def ledare-nr (assign-ids ledare))
 
 
 
 
 
-(def patruller #{"Utmanarna" "Äventyrarna" "Upptäckarna 1" "Upptäckarna 2"})
-
-(def kalenderpass '("Söndag eftermiddag" "Söndag kväll" "Måndag förmiddag") )
-
-(def kalenderpass-nr
-  (assign-ids kalenderpass))
-
-(for [k kalenderpass
-      p patruller]
-  [k " " p])
-
-(def ledar-aktivitet #{"Förbereda landhajk" })
-(def aktivitet #{"Segla 2-krona 1" "Segla 2-krona 2" "Kanot" "Landhajk"})
-
+(def ledare-nr (assign-ids ledare))
 
 (defn print-patrullkalender
   "Prints the values of the patrullkalenderaktivitet matrix."
   [patrullkalenderaktivitet]
+  (println "Patruller: " (str/join " " patruller))
   (doseq [i (range (alength patrullkalenderaktivitet))]
-    (println
+    (println (str "Pass: " (rpad (nth kalenderpass i) 20) )
      (mapv (fn [j]
              (.getValue ^org.chocosolver.solver.variables.IntVar (aget (aget patrullkalenderaktivitet i) j)))
            (range (alength (aget patrullkalenderaktivitet i)))))))
@@ -80,7 +51,7 @@
   (let [solver (.getSolver model)]
     (loop [i 0]
       (when (and (< i 100) (.solve solver))
-        (println "patrullkalender =" )
+        (println "patrullkalender variant " i )
         (print-patrullkalender patrullkalenderaktivitet)
         (recur (inc i))))
     (println "No more solutions or limit reached.")))
