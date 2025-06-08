@@ -151,11 +151,13 @@
 
       
 
-      specific-leader-kanot (specific-leaders model "Kanot 1"  patrullkalender ledarkalender[(ledare-id "Jonas S") (ledare-id "Stuart")] ) 
-      specific-leader-segla (specific-leaders model "Segla 2-krona 1"  patrullkalender ledarkalender[(ledare-id "Jonas S") (ledare-id "Jonas N")] ) 
-      specific-leader-segla (specific-leaders model "Segla 2-krona 2"  patrullkalender ledarkalender[(ledare-id "Jonas S") (ledare-id "Jonas N")] ) 
+      specific-leader-kanot (specific-leaders model "Kanot 1"  patrullkalender ledarkalender[(ledare-id "Anders") (ledare-id "Stuart")] ) 
+      specific-leader-segla1 (specific-leaders model "Segla 2-krona 1"  patrullkalender ledarkalender[(ledare-id "Anders") (ledare-id "Jonas N")] ) 
+      specific-leader-segla2 (specific-leaders model "Segla 2-krona 2"  patrullkalender ledarkalender[(ledare-id "Anders") (ledare-id "Jonas N")] ) 
       
-      
+      ;;todo  add times specific constraints (lägerbål)
+      ;; todo add ledare i land always one daytime
+      ;; todo add 
       constraints (flatten [;; Patrullkalender constraints
                             c012
                             c3456
@@ -166,7 +168,8 @@
                             ;; Ledarkalender constraints
                             lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8
                             specific-leader-kanot
-                            specific-leader-segla
+                            specific-leader-segla1
+                            specific-leader-segla2
                             ])]
 
 
