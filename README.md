@@ -2,6 +2,11 @@
 
 A Clojure project that utilizes the Choco Solver library for constraint satisfaction problems.
 
+## TODO
+
+- Nicer output (HTML?)
+- 
+
 ## Project Setup
 
 To set up this project, ensure you have Clojure and the necessary tools installed. You can then clone this repository and navigate to the project directory.

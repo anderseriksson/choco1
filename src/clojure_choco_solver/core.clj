@@ -123,7 +123,7 @@
       ;; lc0 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 0))
       ;; lc1 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 1))
       ;; lc2 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 2))
-
+      
       lcx0 (.count model 0 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 2" 2))
       lcx1 (.count model 0 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx2 (.count model 0 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
@@ -134,16 +134,29 @@
       lcx7 (.count model 2 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx8 (.count model 2 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
       
-      
+      constraints (seq [               
+      ;; Patrullkalender constraints
+                    c0 c1 c2 c3 c3b c3c
+                    c4 c4b c4c
+                    c5 c5b c5c
+                    c6 c6b c6c
+
+                    ;; Ledarkalender constraints
+                    lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8
+])
       
       
       
       ]
-  (.post model (into-array Constraint [c0 c1 c2 c3 c3b c3c c4 c4b c4c c5 c5b c5c c6 c6b c6c lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8]))
-  (println "constraints:" (.getCstrs model))
+  
+  (doseq [c constraints]
+    (.post model (into-array Constraint [c])))
+
+  (println "constraints count in model:" (count (.getCstrs model)))
+
   (let [solver (.getSolver model)]
     (loop [i 0]
-      (when (and (< i 100) (.solve solver))
+      (when (and (< i 2) (.solve solver))
         (println)
         (println)
         (println "patrull- och ledarkalender variant " i)
