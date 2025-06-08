@@ -37,4 +37,7 @@ https://javadoc.io/doc/org.choco-solver/choco-solver/4.10.18/org.chocosolver.sol
 
 https://tonitalksdev.com/how-to-get-started-with-tdd-in-clojure
 
+Run tests from commandline:
 
+```
+clojure -X:test        
