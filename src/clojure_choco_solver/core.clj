@@ -32,11 +32,6 @@
   [name]
   (some (fn [[k v]] (when (= v name) k)) aktivitet-nr))
 
-(aktivitet-id "Segla 2-krona 1")
-(aktivitet-name 1)
-
-
-;; filepath: /Users/anderik/dev/choco1/src/clojure_choco_solver/core.clj
 (defn print-patrullkalender2
   "Prints the values of the patrullkalender matrix, looking up activity names in the aktivitet list."
   [patrullkalender patruller aktivitet]
@@ -69,16 +64,6 @@
                                  (rpad (str idx) 20))))
                            (range (alength (aget ledarkalender i))))))))))
 
-(defn print-ledarkalender
-  "Prints the values of the ledarkalender matrix."
-  [ledarkalender]
-  (println "Ledare: " (str/join "  " ledare))
-  (doseq [i (range (alength ledarkalender))]
-    (println (str "Pass: " (rpad (nth kalenderpass i) 20))
-             
-             (mapv (fn [j]
-                     (.getValue ^org.chocosolver.solver.variables.IntVar (aget (aget ledarkalender i) j)))
-                   (range (alength (aget ledarkalender i)))))))
 
 (defn intvar-array-from-calendar-row
   "Returns a Java array of IntVar for the given row in the patrullkalenderaktivitet matrix."
@@ -96,6 +81,12 @@
   (map #( .allDifferent model (intvar-array-from-calendar-row matrix %))
        (range (count matrix) )))
 
+(defn constraints-all-different-for-every-patrol-throughout-the-calendar
+  "Returns a sequence of .allDifferent constraints for each patrol throughout the calendar."
+  [model matrix]
+  (map #(.allDifferent model (intvar-array-from-calendar-column matrix %))
+       (range (count (nth matrix 0)))))
+
 
 
 (let [model (Model. "Schema 0")
@@ -111,25 +102,23 @@
                      0 (- (count ledar-aktivitet) 1))
 
 
-      ;; c0 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 0))
-      ;; c1 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 1))
-      ;; c2 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 2))
-
-      ;; c012 (seq [c0 c1 c2]);; c3 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 3))
       c012 (constraints-all-different-during-a-calendar-slot model patrullkalender)
 
-      c3 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 0))
+      ;; c3 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 0))
       c3b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 0) (into-array Integer/TYPE [0 1]))
       c3c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 0) (into-array Integer/TYPE [2 3]))
-      c4 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 1))
+      ;; c4 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 1))
       c4b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 1) (into-array Integer/TYPE [0 1]))
       c4c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 1) (into-array Integer/TYPE [2 3]))
-      c5 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 2))
+      ;; c5 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 2))
       c5b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 2) (into-array Integer/TYPE [0 1]))
       c5c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 2) (into-array Integer/TYPE [2 3]))
-      c6 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 3))
+      ;; c6 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 3))
       c6b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 3) (into-array Integer/TYPE [0 1]))
       c6c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 3) (into-array Integer/TYPE [2 3]))
+
+
+      c3456 (constraints-all-different-for-every-patrol-throughout-the-calendar model patrullkalender)
 
 
       ;; lc0 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 0))
@@ -148,10 +137,12 @@
 
       constraints (flatten [;; Patrullkalender constraints
                             c012
-                            c3 c3b c3c
-                            c4 c4b c4c
-                            c5 c5b c5c
-                            c6 c6b c6c
+                            c3456
+                            
+                            c3b c3c
+                            c4b c4c
+                            c5b c5c
+                            c6b c6c
 
                             ;; Ledarkalender constraints
                             lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8])]

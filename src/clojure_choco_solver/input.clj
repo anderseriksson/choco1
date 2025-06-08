@@ -16,7 +16,10 @@
 
 (def patruller '("Utmanarna" "Äventyrarna" "Upptäckarna 1" "Upptäckarna 2"))
 
-(def kalenderpass '("Söndag eftermiddag" "Söndag kväll" "Måndag förmiddag"))
+(def kalenderpass '("Söndag EM" 
+                    "Söndag kväll" 
+                    "Måndag FM"
+                    "Måndag EM"))
 
 (def aktivitet '("Segla 2-krona 1" 
                  "Segla 2-krona 2" 
