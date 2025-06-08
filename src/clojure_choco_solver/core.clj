@@ -101,6 +101,15 @@
   (map #(.intValuePrecedeChain model (intvar-array-from-calendar-column matrix %) (into-array Integer/TYPE [first following]))
        (range (count (nth matrix 0)))))
 
+(defn specific-leaders
+  "Returns a constraint that ensures specific leaders are assigned to specific activities in the calendars."
+  [model activity-name patrolcalendar leadercalendar leader-ids]
+  (.or model (into-array Constraint
+                                             [(.count model (aktivitet-id activity-name) 
+                                                      (intvar-array-from-calendar-row patrolcalendar 0) (.intVar model "constant 0" 0))
+                                              (.count model (aktivitet-id activity-name) 
+                                                      (intvars-of-parts-of-calendar-row leadercalendar 0 leader-ids) (.intVar model "constant 1" 1))])))
+
 
 (let [model (Model. "Schema 0")
       patrullkalender
@@ -120,7 +129,7 @@
       c3456b (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender 
                                                                             (aktivitet-id "Segla 2-krona 1") 
                                                                             (aktivitet-id "Segla 2-krona 2"))
-            
+      
       c3456c (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender
                                                                             (aktivitet-id "Kanot 1")
                                                                             (aktivitet-id "Kanot 2"))
@@ -129,7 +138,7 @@
       ;; lc0 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 0))
       ;; lc1 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 1))
       ;; lc2 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 2))
-
+      
       lcx0 (.count model 0 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 2" 2))
       lcx1 (.count model 0 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx2 (.count model 0 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
@@ -141,14 +150,10 @@
       lcx8 (.count model 2 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
 
       
-      specific-leader-kanot (.or model (into-array Constraint 
-                            [(.count model (aktivitet-id "Kanot 1") (intvar-array-from-calendar-row patrullkalender 0) (.intVar model "constant 0" 0))
-                             (.count model (aktivitet-id "Kanot 1") (intvars-of-parts-of-calendar-row ledarkalender 0 [(ledare-id "Stuart") (ledare-id "Jonas S")]) (.intVar model "constant 1" 1))
-                            ]))
 
-      specific-leader-segla (.or model (into-array Constraint
-                                             [(.count model (aktivitet-id "Segla 2-krona 1") (intvar-array-from-calendar-row patrullkalender 0) (.intVar model "constant 0" 0))
-                                              (.count model (aktivitet-id "Segla 2-krona 1") (intvars-of-parts-of-calendar-row ledarkalender 0 [(ledare-id "Jonas S") (ledare-id "Jonas N")]) (.intVar model "constant 1" 1))]))
+      specific-leader-kanot (specific-leaders model "Kanot 1"  patrullkalender ledarkalender[(ledare-id "Jonas S") (ledare-id "Stuart")] ) 
+      specific-leader-segla (specific-leaders model "Segla 2-krona 1"  patrullkalender ledarkalender[(ledare-id "Jonas S") (ledare-id "Jonas N")] ) 
+      specific-leader-segla (specific-leaders model "Segla 2-krona 2"  patrullkalender ledarkalender[(ledare-id "Jonas S") (ledare-id "Jonas N")] ) 
       
       
       constraints (flatten [;; Patrullkalender constraints
