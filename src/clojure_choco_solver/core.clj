@@ -1,7 +1,8 @@
 (ns clojure-choco-solver.core
   (:require
    [clojure-choco-solver.util :refer [assign-ids column-from-java-array rpad]]
-   [clojure.string :as str])
+   [clojure.string :as str]
+   [malli.core :as m])
   (:require [clojure-choco-solver.input :refer [ledare patruller kalenderpass aktivitet ledar-aktivitet]])
   (:import
    [org.chocosolver.solver Model]
@@ -66,12 +67,19 @@
 
 
 (defn intvar-array-from-calendar-row
-  "Returns a Java array of IntVar for the given row in the patrullkalenderaktivitet matrix."
-  [patrullkalenderaktivitet row]
-  (into-array IntVar (aget patrullkalenderaktivitet row)))
+  "Returns a Java array of IntVar for a full row in the calender matrix."
+  [calendar row]
+  (into-array IntVar (aget calendar row)))
+
+
+(defn intvars-of-parts-of-calendar-row
+  "Returns a Java array of IntVar for parts of a row in the calender matrix. Parts is a sequence of indices."
+  [calendar row parts]
+  (m/validate [:seqable :int] parts)
+  (into-array IntVar (map #(nth (intvar-array-from-calendar-row calendar row) %) parts)))
 
 (defn intvar-array-from-calendar-column
-  "Returns a Java array of IntVar for the given column in the patrullkalenderaktivitet matrix."
+  "Returns a Java array of IntVar for the complete column in the calendar matrix."
   [patrullkalenderaktivitet row]
   (into-array IntVar (column-from-java-array patrullkalenderaktivitet row)))
 
@@ -87,6 +95,11 @@
   (map #(.allDifferent model (intvar-array-from-calendar-column matrix %))
        (range (count (nth matrix 0)))))
 
+(defn constraints-sequence-for-every-patrol-throughout-the-calendar
+  "Returns a sequence of sequence constraints where first must come before following for each patrol throughout the calendar."
+  [model matrix first following]
+  (map #(.intValuePrecedeChain model (intvar-array-from-calendar-column matrix %) (into-array Integer/TYPE [first following]))
+       (range (count (nth matrix 0)))))
 
 
 (let [model (Model. "Schema 0")
@@ -103,22 +116,14 @@
 
 
       c012 (constraints-all-different-during-a-calendar-slot model patrullkalender)
-
-      ;; c3 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 0))
-      c3b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 0) (into-array Integer/TYPE [0 1]))
-      c3c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 0) (into-array Integer/TYPE [2 3]))
-      ;; c4 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 1))
-      c4b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 1) (into-array Integer/TYPE [0 1]))
-      c4c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 1) (into-array Integer/TYPE [2 3]))
-      ;; c5 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 2))
-      c5b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 2) (into-array Integer/TYPE [0 1]))
-      c5c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 2) (into-array Integer/TYPE [2 3]))
-      ;; c6 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 3))
-      c6b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 3) (into-array Integer/TYPE [0 1]))
-      c6c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 3) (into-array Integer/TYPE [2 3]))
-
-
       c3456 (constraints-all-different-for-every-patrol-throughout-the-calendar model patrullkalender)
+      c3456b (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender 
+                                                                            (aktivitet-id "Segla 2-krona 1") 
+                                                                            (aktivitet-id "Segla 2-krona 2"))
+            
+      c3456c (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender
+                                                                            (aktivitet-id "Kanot 1")
+                                                                            (aktivitet-id "Kanot 2"))
 
 
       ;; lc0 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 0))
@@ -135,17 +140,29 @@
       lcx7 (.count model 2 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx8 (.count model 2 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
 
+      
+      specific-leader-kanot (.or model (into-array Constraint 
+                            [(.count model (aktivitet-id "Kanot 1") (intvar-array-from-calendar-row patrullkalender 0) (.intVar model "constant 0" 0))
+                             (.count model (aktivitet-id "Kanot 1") (intvars-of-parts-of-calendar-row ledarkalender 0 [(ledare-id "Stuart") (ledare-id "Jonas S")]) (.intVar model "constant 1" 1))
+                            ]))
+
+      specific-leader-segla (.or model (into-array Constraint
+                                             [(.count model (aktivitet-id "Segla 2-krona 1") (intvar-array-from-calendar-row patrullkalender 0) (.intVar model "constant 0" 0))
+                                              (.count model (aktivitet-id "Segla 2-krona 1") (intvars-of-parts-of-calendar-row ledarkalender 0 [(ledare-id "Jonas S") (ledare-id "Jonas N")]) (.intVar model "constant 1" 1))]))
+      
+      
       constraints (flatten [;; Patrullkalender constraints
                             c012
                             c3456
-                            
-                            c3b c3c
-                            c4b c4c
-                            c5b c5c
-                            c6b c6c
+                            c3456b
+                            c3456c
+
 
                             ;; Ledarkalender constraints
-                            lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8])]
+                            lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8
+                            specific-leader-kanot
+                            specific-leader-segla
+                            ])]
 
 
 

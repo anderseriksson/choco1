@@ -1,5 +1,7 @@
 {:paths ["src"]
- :deps {org.choco-solver/choco-solver {:mvn/version "4.10.18"}}
+ :deps {org.choco-solver/choco-solver {:mvn/version "4.10.18"}
+        metosin/malli {:mvn/version "0.18.0"}}
+
  :aliases
  {:test
   {:extra-paths ["test"]
