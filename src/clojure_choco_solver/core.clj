@@ -24,7 +24,17 @@
      (mapv (fn [j]
              (.getValue ^org.chocosolver.solver.variables.IntVar (aget (aget patrullkalenderaktivitet i) j)))
            (range (alength (aget patrullkalenderaktivitet i)))))))
-; Print the values of the patrullkalenderaktivitet matrix
+
+
+(defn intvar-array-from-calendar-row
+  "Returns a Java array of IntVar for the given row in the patrullkalenderaktivitet matrix."
+  [patrullkalenderaktivitet row]
+  (into-array IntVar (aget patrullkalenderaktivitet row)))
+
+(defn intvar-array-from-calendar-column
+  "Returns a Java array of IntVar for the given column in the patrullkalenderaktivitet matrix."
+  [patrullkalenderaktivitet row]
+  (into-array IntVar (column-from-java-array patrullkalenderaktivitet row)))
 
 (let [model (Model. "Schema 0")
       patrullkalenderaktivitet
@@ -32,26 +42,26 @@
                      (count kalenderpass)
                      (count patruller)
                      0 (count aktivitet))
-      c0 (.allDifferent model (into-array IntVar (aget patrullkalenderaktivitet 0)))
-      c1 (.allDifferent model (into-array IntVar (aget patrullkalenderaktivitet 1)))
-      c2 (.allDifferent model (into-array IntVar (aget patrullkalenderaktivitet 2)))
-      c3 (.allDifferent model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 0)))
-      c3b (.intValuePrecedeChain model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 0)) (into-array Integer/TYPE [0 1]))
-      c4 (.allDifferent model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 1)))
-      c4b (.intValuePrecedeChain model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 1)) (into-array Integer/TYPE [0 1]))
-      c5 (.allDifferent model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 2)))
-      c5b (.intValuePrecedeChain model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 2)) (into-array Integer/TYPE [0 1]))
-      c6 (.allDifferent model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 3)))
-      c6b (.intValuePrecedeChain model (into-array IntVar  (column-from-java-array patrullkalenderaktivitet 3)) (into-array Integer/TYPE [0 1]))
-      
-      
-      ]
+
+
+
+      c0 (.allDifferent model (intvar-array-from-calendar-row patrullkalenderaktivitet 0))
+      c1 (.allDifferent model (intvar-array-from-calendar-row patrullkalenderaktivitet 1))
+      c2 (.allDifferent model (intvar-array-from-calendar-row patrullkalenderaktivitet 2))
+      c3 (.allDifferent model (intvar-array-from-calendar-column patrullkalenderaktivitet 0))
+      c3b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalenderaktivitet 0) (into-array Integer/TYPE [0 1]))
+      c4 (.allDifferent model (intvar-array-from-calendar-column patrullkalenderaktivitet 1))
+      c4b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalenderaktivitet 1) (into-array Integer/TYPE [0 1]))
+      c5 (.allDifferent model (intvar-array-from-calendar-column patrullkalenderaktivitet 2))
+      c5b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalenderaktivitet 2) (into-array Integer/TYPE [0 1]))
+      c6 (.allDifferent model (intvar-array-from-calendar-column patrullkalenderaktivitet 3))
+      c6b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalenderaktivitet 3) (into-array Integer/TYPE [0 1]))]
   (.post model (into-array Constraint [c0 c1 c2 c3 c3b c4 c4b c5 c5b  c6 c6b]))
   (println "constraints:" (.getCstrs model))
   (let [solver (.getSolver model)]
     (loop [i 0]
       (when (and (< i 100) (.solve solver))
-        (println "patrullkalender variant " i )
+        (println "patrullkalender variant " i)
         (print-patrullkalender patrullkalenderaktivitet)
         (recur (inc i))))
     (println "No more solutions or limit reached.")))
