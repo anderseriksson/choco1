@@ -1,6 +1,13 @@
-{
-  :paths ["src"]
-  :deps {
-    org.choco-solver/choco-solver {:mvn/version "4.10.18"}
-  }
-}
+{:paths ["src" "test"]
+ :deps {org.choco-solver/choco-solver {:mvn/version "4.10.18"}}
+ :aliases
+ {:test
+  {:extra-paths ["test"]
+   :extra-deps  {lambdaisland/kaocha {:mvn/version "1.77.1236"}}
+   :exec-fn     kaocha.runner/exec-fn
+   :exec-args   {:skip-meta :slow}}
+
+  :watch
+  {:exec-args   {:watch?     true
+                 :skip-meta  :slow
+                 :fail-fast? true}}}}

@@ -9,12 +9,32 @@
    [org.chocosolver.util.objects.setDataStructures.iterable IntIterableRangeSet]
    [org.chocosolver.solver.variables IntVar]))
 
-
-
-
-
-
 (def ledare-nr (assign-ids ledare))
+
+
+(defn ledare-name 
+  "Returns the name of the ledare given an ID."
+  [id]
+  (ledare-nr id))
+
+(defn ledare-id
+  "Returns the ID of the ledare given an name."
+  [name]
+  (some (fn [[k v]] (when (= v name) k)) ledare-nr))
+
+(def aktivitet-nr (assign-ids aktivitet))
+(defn aktivitet-name
+  "Returns the name of the aktivitet given an ID."
+  [id]
+  (aktivitet-nr id))
+(defn aktivitet-id
+  "Returns the ID of the aktivitet given a name."
+  [name]
+  (some (fn [[k v]] (when (= v name) k)) aktivitet-nr))
+
+(aktivitet-id "Segla 2-krona 1")
+(aktivitet-name 1)
+
 
 ;; filepath: /Users/anderik/dev/choco1/src/clojure_choco_solver/core.clj
 (defn print-patrullkalender2
@@ -107,9 +127,9 @@
       lcx0 (.count model 0 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 2" 2))
       lcx1 (.count model 0 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx2 (.count model 0 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
-      lcx3 (.count model 1 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 1" 2))
-      lcx4 (.count model 1 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 1" 2))
-      lcx5 (.count model 1 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 1" 2))
+      lcx3 (.count model 1 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 1" 1))
+      lcx4 (.count model 1 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 1" 1))
+      lcx5 (.count model 1 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 1" 1))
       lcx6 (.count model 2 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 2" 2))
       lcx7 (.count model 2 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx8 (.count model 2 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
@@ -119,7 +139,7 @@
       
       
       ]
-  (.post model (into-array Constraint [c0 c1 c2 c3 c3b c3c c4 c4b c4c c5 c5b c5c c6 c6b c6c lcx0 lcx1 lcx2 lcx3 lcx4 lcx5]))
+  (.post model (into-array Constraint [c0 c1 c2 c3 c3b c3c c4 c4b c4c c5 c5b c5c c6 c6b c6c lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8]))
   (println "constraints:" (.getCstrs model))
   (let [solver (.getSolver model)]
     (loop [i 0]
