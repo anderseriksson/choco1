@@ -18,7 +18,7 @@
   (ledare-nr id))
 
 (defn ledare-id
-  "Returns the ID of the ledare given an name."
+  "Returns the ID of the ledare given a name."
   [name]
   (some (fn [[k v]] (when (= v name) k)) ledare-nr))
 
@@ -90,6 +90,14 @@
   [patrullkalenderaktivitet row]
   (into-array IntVar (column-from-java-array patrullkalenderaktivitet row)))
 
+(defn constraints-all-different-during-a-calendar-slot
+  "Returns a sequence of .allDifferent constraints of all rows of the given matrix."
+  [model matrix]
+  (map #( .allDifferent model (intvar-array-from-calendar-row matrix %))
+       (range (count matrix) )))
+
+
+
 (let [model (Model. "Schema 0")
       patrullkalender
       (.intVarMatrix model "patrullkalender"
@@ -103,9 +111,13 @@
                      0 (- (count ledar-aktivitet) 1))
 
 
-      c0 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 0))
-      c1 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 1))
-      c2 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 2))
+      ;; c0 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 0))
+      ;; c1 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 1))
+      ;; c2 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 2))
+
+      ;; c012 (seq [c0 c1 c2]);; c3 (.allDifferent model (intvar-array-from-calendar-row patrullkalender 3))
+      c012 (constraints-all-different-during-a-calendar-slot model patrullkalender)
+
       c3 (.allDifferent model (intvar-array-from-calendar-column patrullkalender 0))
       c3b (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 0) (into-array Integer/TYPE [0 1]))
       c3c (.intValuePrecedeChain model (intvar-array-from-calendar-column patrullkalender 0) (into-array Integer/TYPE [2 3]))
@@ -123,7 +135,7 @@
       ;; lc0 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 0))
       ;; lc1 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 1))
       ;; lc2 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 2))
-      
+
       lcx0 (.count model 0 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 2" 2))
       lcx1 (.count model 0 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx2 (.count model 0 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
@@ -133,22 +145,22 @@
       lcx6 (.count model 2 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 2" 2))
       lcx7 (.count model 2 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx8 (.count model 2 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
-      
-      constraints (seq [               
-      ;; Patrullkalender constraints
-                    c0 c1 c2 c3 c3b c3c
-                    c4 c4b c4c
-                    c5 c5b c5c
-                    c6 c6b c6c
 
-                    ;; Ledarkalender constraints
-                    lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8
-])
-      
-      
-      
-      ]
-  
+      constraints (flatten [;; Patrullkalender constraints
+                            c012
+                            c3 c3b c3c
+                            c4 c4b c4c
+                            c5 c5b c5c
+                            c6 c6b c6c
+
+                            ;; Ledarkalender constraints
+                            lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8])]
+
+
+
+
+
+
   (doseq [c constraints]
     (.post model (into-array Constraint [c])))
 
