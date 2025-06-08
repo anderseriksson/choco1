@@ -24,6 +24,8 @@
   (some (fn [[k v]] (when (= v name) k)) ledare-nr))
 
 (def aktivitet-nr (assign-ids aktivitet))
+
+
 (defn aktivitet-name
   "Returns the name of the aktivitet given an ID."
   [id]
@@ -32,6 +34,31 @@
   "Returns the ID of the aktivitet given a name."
   [name]
   (some (fn [[k v]] (when (= v name) k)) aktivitet-nr))
+
+
+ ; 0
+
+(def calendar-map (assign-ids kalenderpass))
+(defn calendar-row-name
+  "Returns the name of the calendar row given an ID."
+  [id]
+  (calendar-map id))
+
+(defn calendar-row-id
+  "Returns the ID of the calendar row given a name."
+  [name]
+  (some (fn [[k v]] (when (= v name) k)) calendar-map))
+
+(def patrol-map (assign-ids patruller))
+(defn patrol-name
+  "Returns the name of the patrol given an ID."
+  [id]
+  (patrol-map id))
+(defn patrol-id
+  "Returns the ID of the patrol given a name."
+  [name]
+  (some (fn [[k v]] (when (= v name) k)) patrol-map))
+
 
 (defn print-patrullkalender2
   "Prints the values of the patrullkalender matrix, looking up activity names in the aktivitet list."
@@ -123,22 +150,25 @@
                      (count ledare)
                      0 (- (count ledar-aktivitet) 1))
 
+      ;; Det går ju inte - alla ska ju ha lägerbål samtidigt ju
+      ;; c012 (constraints-all-different-during-a-calendar-slot model patrullkalender)
 
-      c012 (constraints-all-different-during-a-calendar-slot model patrullkalender)
-      c3456 (constraints-all-different-for-every-patrol-throughout-the-calendar model patrullkalender)
-      c3456b (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender 
-                                                                            (aktivitet-id "Segla 2-krona 1") 
-                                                                            (aktivitet-id "Segla 2-krona 2"))
-      
-      c3456c (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender
-                                                                            (aktivitet-id "Kanot 1")
-                                                                            (aktivitet-id "Kanot 2"))
+      ;; Todo segling 2-krona ska vara unik 
+
+      ;;c3456 (constraints-all-different-for-every-patrol-throughout-the-calendar model patrullkalender)
+      ;; c3456b (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender
+      ;;                                                                       (aktivitet-id "Segla 2-krona 1")
+      ;;                                                                       (aktivitet-id "Segla 2-krona 2"))
+
+      ;; c3456c (constraints-sequence-for-every-patrol-throughout-the-calendar model patrullkalender
+      ;;                                                                       (aktivitet-id "Kanot 1")
+      ;;                                                                       (aktivitet-id "Kanot 2"))
 
 
       ;; lc0 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 0))
       ;; lc1 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 1))
       ;; lc2 (.allDifferent model (intvar-array-from-calendar-row ledarkalender 2))
-      
+
       lcx0 (.count model 0 (intvar-array-from-calendar-row ledarkalender 0) (.intVar model "constant 2" 2))
       lcx1 (.count model 0 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx2 (.count model 0 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
@@ -149,29 +179,73 @@
       lcx7 (.count model 2 (intvar-array-from-calendar-row ledarkalender 1) (.intVar model "constant 2" 2))
       lcx8 (.count model 2 (intvar-array-from-calendar-row ledarkalender 2) (.intVar model "constant 2" 2))
 
-      
 
-      specific-leader-kanot (specific-leaders model "Kanot 1"  patrullkalender ledarkalender[(ledare-id "Anders") (ledare-id "Stuart")] ) 
-      specific-leader-segla1 (specific-leaders model "Segla 2-krona 1"  patrullkalender ledarkalender[(ledare-id "Anders") (ledare-id "Jonas N")] ) 
-      specific-leader-segla2 (specific-leaders model "Segla 2-krona 2"  patrullkalender ledarkalender[(ledare-id "Anders") (ledare-id "Jonas N")] ) 
-      
+
+      specific-leader-kanot (specific-leaders model "Paddla kanot"  patrullkalender ledarkalender [(ledare-id "Anders") (ledare-id "Stuart")])
+      specific-leader-segla1 (specific-leaders model "Segla 2-krona"  patrullkalender ledarkalender [(ledare-id "Anders") (ledare-id "Jonas N")])
+      specific-leader-segla2 (specific-leaders model "Segla IF"  patrullkalender ledarkalender [(ledare-id "Anders") (ledare-id "Jonas N")])
+
+      some-cant-be-done-on-the-same-time
+      (.count model (aktivitet-id "Segla 2-krona")
+              (intvar-array-from-calendar-row patrullkalender (calendar-row-id "Söndag EM"))
+              (.intVar model "only 1" 1))
+
+      all-patrols-on-sunday-evening
+      (.count model (aktivitet-id "Invigning läger")
+              (intvar-array-from-calendar-row patrullkalender (calendar-row-id "Söndag kväll"))
+              (.intVar model "the older ones" 3))
+
+      all-patrols-on-wednesday-evening
+      (.count model (aktivitet-id "Lägerbål onsdag")
+              (intvar-array-from-calendar-row patrullkalender (calendar-row-id "Onsdag kväll"))
+              (.intVar model "all patrols" (count patrol-map)))
+      all-patrols-on-friday-evening
+      (.count model (aktivitet-id "Avslutning läger")
+              (intvar-array-from-calendar-row patrullkalender (calendar-row-id "Fredag kväll"))
+              (.intVar model "all patrols" (count patrol-map)))
+      clean-up-on-last-day
+      (.count model (aktivitet-id "Packa ihop läger")
+              (intvar-array-from-calendar-row patrullkalender (calendar-row-id "Lördag FM"))
+              (.intVar model "all patrols"  (count patrol-map)))
+
+      the-youngest-arrives-on-wednesday0
+      (.count model (aktivitet-id "-")
+              (intvars-of-parts-of-calendar-row patrullkalender (calendar-row-id "Söndag EM") [3 4 5])
+              (.intVar model "three" 3))
+      the-youngest-arrives-on-wednesday1
+      (.count model (aktivitet-id "-")
+              (intvars-of-parts-of-calendar-row patrullkalender (calendar-row-id "Söndag kväll") [3 4 5])
+              (.intVar model "three" 3))
+
+
+      ;; todo add constraints for all leaders on the last day
+
       ;;todo  add times specific constraints (lägerbål)
       ;; todo add ledare i land always one daytime
       ;; todo add 
       constraints (flatten [;; Patrullkalender constraints
-                            c012
-                            c3456
-                            c3456b
-                            c3456c
+                            ;; c012
+                            ;;c3456
+                            ;; c3456b
+                            ;; c3456c
 
+                            some-cant-be-done-on-the-same-time
 
                             ;; Ledarkalender constraints
                             lcx0 lcx1 lcx2 lcx3 lcx4 lcx5 lcx6 lcx7 lcx8
                             specific-leader-kanot
                             specific-leader-segla1
                             specific-leader-segla2
-                            ])]
 
+                            ;; some-cant-be-done-on-the-same-time
+
+                            all-patrols-on-sunday-evening
+                            all-patrols-on-wednesday-evening
+                            all-patrols-on-friday-evening
+                            clean-up-on-last-day
+
+                            the-youngest-arrives-on-wednesday0
+                            the-youngest-arrives-on-wednesday1])]
 
 
 

@@ -3,3 +3,4 @@
 .clj-kondo
 .lsp
 .nrepl-port
+out.txt
