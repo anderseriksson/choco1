@@ -12,6 +12,29 @@ A Clojure project that utilizes the Choco Solver library for constraint satisfac
 - Andra noteringar från 9 juni
   - Spårarna får effektiv lunch (t ex ombord på transport från Stavsnäs) så att
   - Tobias vill ha information kring "Ön runt" 2024.
+  - Anna skickar seglingspass - gärna med stegring jämfört med 2024
+  - Kl 12 hämtas scouterna. 
+  - Taxibåt med lördag kommer dit kl 15 förtruppen
+  - Vilka är förtrupp? Stuart, Malin,
+  - Coop lördag kommer mellan 15-19 och på onsdag 
+  - Lördag hem - Stuart måste veta hur många som ska åka hem så om det blir en eller två båtar
+  - Fråga om parkering vid Stavsnäs - den
+  - 2 släpvagnar behövs till Stuart
+  - Budget till Malin
+  - Allergi-listan till Malin
+  - Hemseglingsmaten ska preciseras så att den kan beställas till onsdagen
+  - Ditseglingsmaten sköter Anna
+  - Anna ska skicka gamla dokument 
+  - Anders delar länk till Google drive
+  - Tobias bygger dusch om han får tid
+  - Fiske pass ska Thomas
+  - Sjukvårdspass Anders och Emy ordnar
+  - Emy går igenom sjukvårdsväskan - resorb, värktabletter, antihistamin
+  - 
+ 
+- Motufetu tisdag kväll
+  - Hur ta sig till stranden?
+  - Vilken mat och dryck kommer det föras ut till Motufetu
   - 
 
 ## Project Setup
