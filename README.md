@@ -5,7 +5,14 @@ A Clojure project that utilizes the Choco Solver library for constraint satisfac
 ## TODO
 
 - Nicer output (HTML?)
-- 
+- Spårare är 24 scouter. Dela i två grupper som i sin tur kan vara två undergrupper. 6 x 2 x 2
+- Spårare måste boa in sig onsdag kväll så korta kvälls-invigningen.
+- Segla hem tidigt på lördagen för IF-besättningarna 
+
+- Andra noteringar från 9 juni
+  - Spårarna får effektiv lunch (t ex ombord på transport från Stavsnäs) så att
+  - Tobias vill ha information kring "Ön runt" 2024.
+  - 
 
 ## Project Setup
 
